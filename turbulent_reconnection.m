@@ -509,103 +509,6 @@ end
 %% ------------------------------------------------------------------------
 %% ----- Export setup parameters
 
-%{
-
-
-%NAct = nnz(isActive);       % number of active points
-
-%mfp0 = l./ActiveRatio;      % theoretical mean free path [cm]
-%alpha0 = 4/3*V^2/(c*mfp0);  %
-%tacc0 = 1/alpha0;           % theoretical acceleration time [sec]
-
-model.imodel = imodel;
-model.ndims = ndims;
-model.iBCs = iBCs;
-model.iCollFlag = iCollFlag;
-model.const.gammaLim = gammaLim;
-model.const.erg2eV = erg2eV;
-
-scatterers.B = B;
-scatterers.N = N;
-scatterers.L = L;
-%scatterers.R = ActiveRatio;
-scatterers.n0 = n0;
-scatterers.Vfactor = Vfactor;
-scatterers.VA = VA;
-scatterers.l = l;
-%scatterers.NAct = NAct;
-%scatterers.mfp0 = mfp0;
-%scatterers.tacc0 = tacc0;
-
-particles.nP = nP;
-particles.kT0 = kT0;
-particles.vth = vth;
-particles.Wth = Wth;
-particles.Wrest = Wrest;
-particles.lIon = lIon;
-particles.Zion = Zion;
-particles.l0centre = l0centre;
-particles.lW0const = lW0const;
-particles.v0thresFactor = v0thresFactor;
-
-monitor.lmonitSwitch = lmonitSwitch;
-if lmonitSwitch
-    monitor.lmonitSwitch = lmonitSwitch;
-    monitor.tinit = tinit;
-    monitor.tfin = tfin;
-    monitor.ntM = ntM;
-    monitor.WmonitFactor = WmonitFactor;
-end
-
-collisions.iCollFlag = iCollFlag;
-if lcollSwitch
-    collisions.lbackIon = lbackIon;
-    collisions.TCollFactor = TCollFactor;
-    collisions.tColl = tColl;
-    collisions.mfpColl = mfpColl;
-    collisions.lnCoul = lnCoul;
-end
-
-if imodel == 2 || imodel == 12
-    EF.idtCS = idtCS;
-    EF.T0cs = T0cs;
-    EF.ED = ED;
-    EF.lBdepend = lBdepend;
-    EF.lEplaw = lEplaw;
-    EF.lLeffrand = lLeffrand;
-    EF.LeffLim1 = LeffLim1;
-    EF.LeffLim2 = LeffLim2;
-    EF.BPLa = BPLa;
-    EF.lBPLparam = lEPLparam;
-    EF.BLim1 = BLim1;
-    EF.BLim2 = BLim2;
-    EF.EPLa = EPLa;
-    EF.lEPLparam = lEPLparam;
-    EF.EeffParamLim1 = EeffParamLim1;
-    EF.EeffParamLim2 = EeffParamLim2;
-    if ~lBdepend && lEplaw
-        EF.EeffLim1 = EeffLim1;
-        EF.EeffLim2 = EeffLim2;
-    end
-    EF.Efactor = Efactor;
-    model.UCS = EF;
-elseif imodel == 3 || imodel == 13
-    CD.ldWTerm_cosPhi = ldWTerm_cosPhi;
-    CD.ldWTerm_dBB = ldWTerm_dBB;
-    CD.idWTerm_W = idWTerm_W;
-    CD.idWTerm_const = idWTerm_const;
-    CD.BPLa = BPLa;
-    CD.lBPLparam = lEPLparam;
-    CD.BLim1 = BLim1;
-    CD.BLim2 = BLim2;
-    model.UCS = CD;
-end
-
-%save('setup006.mat',...
- %  'model', 'particles', 'scatterers', 'collisions', 'monitor'...
-  %);
-
-%}
 % Initial data
 W0_eV = W0 .* erg2eV;
 %save('init006.mat', 'W0_eV', 'v0');
@@ -619,11 +522,7 @@ clear  alpha0 ...
 disp('Starting particle loop')
 if lTime, tic; toc0 = toc; end
 
-    %{
-N_check=0; % for the case where number of kicks is equal to N
-    N_check2=0;           % we re-run the simulation for that particle with a new
-                 % N=2N
-      %}           
+
     j1=1; %Only if you want to check the values for Beff, Leff, Eeff (model 2)            
 for ip = 1:nP
       
@@ -723,16 +622,10 @@ tau_check=zeros(1,N);
     %countdW_p(ip) = 0;
 
     % Complete timeseries
-    %if lTScomplete
-        %W_Arr = W;
-        %t_Arr = tinit;
-        dW_Arr = NaN;
-        %dW_Arr_overW = NaN;
-        %dtScat_Arr = NaN;
-       % kicks_Arr = 0;
-       % if imodel > 10, model_Arr = NaN; end
-   % end
-    
+
+    dW_Arr = NaN;
+
+
     %% particle travels in the domain
    for j=(2-energ_t0):N   % if energ_t0=1 (energ at t=0) NS
        
@@ -1008,20 +901,14 @@ tau_check=zeros(1,N);
                 
                 
                 % Complete timeseries
-               % if lTScomplete
-                   % W_Arr = [W_Arr Wi];
+              
+  
                     dW_Arr = [dW_Arr dW];
-                    %dW_Arr_overW = [dW_Arr_overW a11];
+                  
                     
-                    %t_Arr = [t_Arr t];
-                   % dtScat_Arr = [dtScat_Arr dtScat];
-                   % kicks_Arr = [kicks_Arr kkicks(ip)];
-                   % if imodel > 10, model_Arr = [model_Arr idWChoice]; end
-               % end
+=
                
                    Wf = Wi + dW;   % Kinetic energy
-                   %t = t + dtScat; 
-               %    a11(ip,j)=abs(dW/WiTot);
                    
                     
                    if (Wf<0) && (second_way)
@@ -1046,15 +933,9 @@ tau_check=zeros(1,N);
                     %tSignore = [tSignore; t];
                    
                     % Complete timeseries
-                   % if lTScomplete
-                      %  W_Arr = W_Arr(1:end-1);
-                        dW_Arr = dW_Arr(1:end-1);
-                       % dW_Arr_overW=dW_Arr_overW(1:end-1);
-                        %t_Arr = t_Arr(1:end-1);
-                        %dtScat_Arr = dtScat_Arr(1:end-1);
-                        %kicks_Arr = kicks_Arr(1:end-1);
-                        %if imodel > 10, model_Arr = model_Arr(1:end-1); end
-                    %end
+
+                    dW_Arr = dW_Arr(1:end-1);
+
                 end
                
                 % Counters for statistics
@@ -1307,22 +1188,9 @@ tau_check=zeros(1,N);
    end
 
     % Complete timeseries
-    %if lTScomplete
-        %W_Cell{ip} = W_Arr;
-        dW_Cell{ip} = dW_Arr;
-        %dW_Cell_overW(ip)= dW_Arr_overW;
-       % t_Cell{ip} = t_Arr;
-        %dtScat_Cell{ip} = dtScat_Arr;
-        %kicks_Cell{ip} = kicks_Arr;
-       % if imodel > 10, model_Cell{ip} = model_Arr; end
-    %end
-    
-    %{
-     if kkicks(ip)>=N  %re-run the code for this particle
-        ip=ip-1;
-        N_check=1;
-    end
-    %}
+
+    dW_Cell{ip} = dW_Arr;
+
 end % Particle loop
 if lTime, elapsedTime = toc; end
 %% ------------------------------------------------------------------------
@@ -1331,16 +1199,10 @@ if lmonitSwitch
     % Space: mean displacements and diffusion coefficients
     %Drr_clas = 0.5*(rmsd1./is_in) ./tM;
    
-   %save('r_coeffs006.mat',...
-    %  'tM','ntM','tfin', 'kpM', 'rmsd', 'rmsd_', 'rmsd1', 'Drr_clas'...
-     % );
-   
+
     % Energies
     Wkinet_eV = Wkinet .* erg2eV;
 
-  % save('W_evol006.mat',...
-    %   'tM', 'Wkinet','erg2eV','Wkinet_eV'...
-    % );
 end
 
 %% Escape data
